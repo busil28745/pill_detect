@@ -22,7 +22,6 @@ class Net(nn.Module):
         self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x):
-        #모
         x = self.conv1(x)
         x = F.relu(x)
         x = self.conv2(x)
@@ -108,7 +107,6 @@ class CustomDataSet(Dataset):
 
 def main():
     # Training settings
-    #busil zz
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
     parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                         help='input batch size for training (default: 64)')

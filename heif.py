@@ -3,7 +3,8 @@ import os
 import PIL
 from PIL import Image
 import numpy as np
-file_list = os.listdir("../DATASET")
+
+file_list = os.listdir("./test")
 answer = {
     '네렉손서방정': 0,
     '레피콜에이': 1,
@@ -20,11 +21,12 @@ i = 0
 
 #image change
 for name in file_list:
-    img_name_list = os.listdir("DATASET/" + name)
+
+    img_name_list = os.listdir("test/" + name)
     for img_name in img_name_list:
         if img_name == '.DS_Store':
             pass
-        image = Image.open("DATASET/" + name + '/' + img_name)
+        image = Image.open("test/" + name + '/' + img_name)
         image = image.resize((84, 84)).convert('L')
         image.save("pill_dataset/" + "%03d"%i + '.jpg')
         print(i)
