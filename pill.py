@@ -153,10 +153,10 @@ def main():
         transforms.Normalize((0.1307,), (0.3081,))
         ])
     dataset1 = CustomDataSet('pill_dataset', 'pill_dataset_answer.npy', transform=transform)
-    #dataset2 = CustomDataSet('pill_dataset', 'pill_dataset_answer.npy', transform=transform)
+    dataset2 = CustomDataSet('pill_dataset_t', 'pill_dataset_answer_t.npy', transform=transform)
 
-    train_loader = torch.utils.data.DataLoader(dataset1,**train_kwargs)
-    #test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
+    train_loader = torch.utils.data.DataLoader(dataset1, **train_kwargs)
+    test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
 
     #Net - 신경망
     model = Net().to(device)
@@ -166,7 +166,7 @@ def main():
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch)
-        #test(model, device, test_loader)
+        test(model, device, test_loader)
         scheduler.step()
         torch.save(model.state_dict(), "pill_cnn.pt")
 
