@@ -11,6 +11,11 @@ from torch.utils.data import Dataset
 from torch.optim.lr_scheduler import StepLR
 import numpy as np
 from PIL import Image
+import os
+
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
+
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
@@ -41,9 +46,8 @@ def train(args, model, device, train_loader, optimizer, epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         #enumerate batch_idx = 1, 2, ...
-        #학습요소 관련 x
+
         data, target = data.to(device), target.to(device)
-        #optimizer 준
         optimizer.zero_grad()
         #모델에 데이터 넣어줌
         output = model(data)
@@ -149,10 +153,10 @@ def main():
         transforms.Normalize((0.1307,), (0.3081,))
         ])
     dataset1 = CustomDataSet('pill_dataset', 'pill_dataset_answer.npy', transform=transform)
-    dataset2 = CustomDataSet('pill_dataset', 'pill_dataset_answer.npy', transform=transform)
-    #one more
+    #dataset2 = CustomDataSet('pill_dataset', 'pill_dataset_answer.npy', transform=transform)
+
     train_loader = torch.utils.data.DataLoader(dataset1,**train_kwargs)
-    test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
+    #test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
 
     #Net - 신경망
     model = Net().to(device)
@@ -161,11 +165,9 @@ def main():
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
     for epoch in range(1, args.epochs + 1):
-        #train 함수에 넣어
         train(args, model, device, train_loader, optimizer, epoch)
-        test(model, device, test_loader)
+        #test(model, device, test_loader)
         scheduler.step()
-        #모델 저
         torch.save(model.state_dict(), "pill_cnn.pt")
 
 
