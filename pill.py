@@ -12,6 +12,7 @@ from torch.optim.lr_scheduler import StepLR
 import numpy as np
 from PIL import Image
 import os
+import random
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
@@ -19,17 +20,21 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
+        self.conv1 = nn.Conv2d(3, 32, 3, 1)
         self.conv2 = nn.Conv2d(32, 64, 3, 1)
+        self.conv3 = nn.Conv2d(64, 64, 3, 1)
         self.dropout1 = nn.Dropout(0.25)
         self.dropout2 = nn.Dropout(0.5)
-        self.fc1 = nn.Linear(102400, 128)
-        self.fc2 = nn.Linear(128, 10)
+        self.fc1 = nn.Linear(102400, 2048)
+        self.fc2 = nn.Linear(2048, 256)
+        self.fc3 = nn.Linear(256, 10)
 
     def forward(self, x):
         x = self.conv1(x)
         x = F.relu(x)
         x = self.conv2(x)
+        x = F.relu(x)
+        x = self.conv3(x)
         x = F.relu(x)
         x = F.max_pool2d(x, 2)
         x = self.dropout1(x)
@@ -38,6 +43,9 @@ class Net(nn.Module):
         x = F.relu(x)
         x = self.dropout2(x)
         x = self.fc2(x)
+        x = F.relu(x)
+        x = self.fc3(x)
+        x = F.relu(x)
         output = F.log_softmax(x, dim=1)
         return output
 
@@ -83,7 +91,6 @@ def test(model, device, test_loader):
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
 
-
 class CustomDataSet(Dataset):
     def __init__(self, main_dir, label, transform):
         self.main_dir = main_dir
@@ -96,29 +103,34 @@ class CustomDataSet(Dataset):
         for i, img in enumerate(self.total_imgs_dir):
             #img location
             img_loc = os.path.join(self.main_dir, img)
-            # image = Image.open(img_loc).convert('L')
-            # image = image.resize((84, 84))
             image = Image.open(img_loc)
             #read tensor img
-            tensor_image = self.transform(image)
-            self.total_imgs.append(tensor_image)
+            image = np.asarray(image)
+            self.total_imgs.append(image)
             print(f"{i} in {len(self.total_imgs_dir)}...")
     def __len__(self):
         return len(self.total_imgs)
 
     def __getitem__(self, idx):
-        return self.total_imgs[idx], self.answer[idx]
+        img = self.total_imgs[idx]
+        img = Image.fromarray(img)
+        randint = random.randint(0, 3)
+        img = img.rotate(90 * randint)
+        img = np.asarray(img)
+        img = self.transform(img)
+        return img, self.answer[idx]
 
 def main():
     # Training settings
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
+    #8, 16, 32, 64....
     parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                         help='input batch size for testing (default: 1000)')
-    parser.add_argument('--epochs', type=int, default=100, metavar='N',
+    parser.add_argument('--epochs', type=int, default=30, metavar='N',
                         help='number of epochs to train (default: 14)')
-    parser.add_argument('--lr', type=float, default=1.0, metavar='LR',
+    parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
                         help='learning rate (default: 1.0)')
     parser.add_argument('--gamma', type=float, default=0.9, metavar='M',
                         help='Learning rate step gamma (default: 0.7)')
