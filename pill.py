@@ -1,7 +1,6 @@
 from __future__ import print_function
 import argparse
 import torch
-import os
 import natsort
 import torch.nn as nn
 import torch.nn.functional as F
@@ -22,19 +21,15 @@ class Net(nn.Module):
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(3, 32, 3, 1)
         self.conv2 = nn.Conv2d(32, 64, 3, 1)
-        self.conv3 = nn.Conv2d(64, 64, 3, 1)
         self.dropout1 = nn.Dropout(0.25)
         self.dropout2 = nn.Dropout(0.5)
-        self.fc1 = nn.Linear(102400, 2048)
-        self.fc2 = nn.Linear(2048, 256)
-        self.fc3 = nn.Linear(256, 10)
+        self.fc1 = nn.Linear(102400, 128)
+        self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x):
         x = self.conv1(x)
         x = F.relu(x)
         x = self.conv2(x)
-        x = F.relu(x)
-        x = self.conv3(x)
         x = F.relu(x)
         x = F.max_pool2d(x, 2)
         x = self.dropout1(x)
@@ -43,9 +38,6 @@ class Net(nn.Module):
         x = F.relu(x)
         x = self.dropout2(x)
         x = self.fc2(x)
-        x = F.relu(x)
-        x = self.fc3(x)
-        x = F.relu(x)
         output = F.log_softmax(x, dim=1)
         return output
 
@@ -53,8 +45,8 @@ class Net(nn.Module):
 def train(args, model, device, train_loader, optimizer, epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
-        #enumerate batch_idx = 1, 2, ...
 
+        #enumerate batch_idx = 1, 2, ...
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         #모델에 데이터 넣어줌
@@ -124,13 +116,13 @@ def main():
     # Training settings
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
     #8, 16, 32, 64....
-    parser.add_argument('--batch-size', type=int, default=64, metavar='N',
+    parser.add_argument('--batch-size', type=int, default=32, metavar='N',
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                         help='input batch size for testing (default: 1000)')
     parser.add_argument('--epochs', type=int, default=30, metavar='N',
                         help='number of epochs to train (default: 14)')
-    parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
+    parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                         help='learning rate (default: 1.0)')
     parser.add_argument('--gamma', type=float, default=0.9, metavar='M',
                         help='Learning rate step gamma (default: 0.7)')
@@ -172,8 +164,8 @@ def main():
 
     #Net - 신경망
     model = Net().to(device)
-    optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
-    # optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    #optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
     for epoch in range(1, args.epochs + 1):
